@@ -6,12 +6,12 @@ fi
 
 KERNEL_DIR=$PWD
 AK2DIR=$KERNEL_DIR/AnyKernel2
-TOOLCHAINDIR=/home/linux/mytools/toolchains/arm-linux-androideabi-4.9
+TOOLCHAINDIR=/home/linux/mytools/toolchains/arm-linux-androideabi-4.9/bin/arm-linux-androideabi-
 DATE=$(date +"%m%d%y")
 KERNEL_NAME="OrgasmKernel"
 
 export ARCH=arm && export SUBARCH=arm
-export CROSS_COMPILE=$TOOLCHAINDIR/bin/arm-linux-androideabi-
+export CROSS_COMPILE=$TOOLCHAINDIR
 export USE_CCACHE=1
 export COMPRESS_CACHE=1
 export DEVICE="perry"
@@ -38,7 +38,7 @@ else
 fi
 GCCV=$("$CROSS_COMPILE"gcc -v 2>&1 | tail -1 | cut -d ' ' -f 3)
 printf "\nTHREADS: $t\nVERSION: $2\nRELEASE: $3\nGCC VERSION: $GCCV\n\n"
-echo "==> Build script courtest of @facuarmo"
+echo "==> Adapted build script, courtest of @facuarmo"
 echo "==> Making kernel binary..."
 make O=out perry_defconfig
 make O=out -j$t
@@ -47,24 +47,34 @@ then
 	echo "!!! Kernel compilation failed, can't continue !!!"
 	exit 1
 fi
-mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
-
-if [ -e $(find out/vendor/ -name '*.ko' -type f -print) ]
-then	
-	echo "=> Finding modules"
-	rsync -a --prune-empty-dirs --include '*/' --include '*.ko' --exclude '*' out/ $AK2DIR/modules/
-	find out/vendor/ -name '*.ko' -type f -exec cp '{}' "$AK2DIR/modules/system/lib/modules" \;
-	cp "$AK2IR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko"
+echo "=> Making modules..."
+make O=out -j$t M=$PWD/vendor/qcom/opensource/wlan/prima ARCH=arm CROSS_COMPILE=$TOOLCHAINDIR modules WLAN_ROOT=$PWD/vendor/qcom/opensource/wlan/prima MODNAME=wlan BOARD_PLATFORM=msm8937 CONFIG_PRONTO_WLAN=m
+if [ $? -ne 0 ]
+then
+	echo "Module compilation failed, can't continue."
+	exit 1
 fi
+#make -j$t modules_install INSTALL_MOD_PATH=out/modules INSTALL_MOD_STRIP=1
+#if [ $? -ne 0 ]
+#then
+#	echo "Module installation failed, can't continue."
+#	exit 1
+#fi
 
 echo "==> Kernel compilation completed"
+
+echo "==> Making Flashable zip"
+
+echo "=> Finding modules"
+
+rsync -a --prune-empty-dirs --include '*/' --include '*.ko' --exclude '*' out/ $AK2DIR/modules/
+mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
+cp "$AK2DIR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko"
 
 cp  $KERNEL_DIR/out/arch/arm/boot/zImage $AK2DIR
 cp  $KERNEL_DIR/out/arch/arm/boot/dts/qcom/*.dtb $AK2DIR
 
 cd $AK2DIR
-
-echo "==> Making Flashable zip"
 
 if [ -e $AK2DIR/*.zip ];
 then

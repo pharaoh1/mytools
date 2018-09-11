@@ -17,12 +17,11 @@ export FINAL_ZIP="$KERNEL_NAME"-"$DEVICE""$TYPE""$VER"_"$DATE".zip
 
 echo "==> Making Flashable zip"
 
-if [ -e $(find out/vendor/ -name '*.ko' -type f -print) ];
-then
-	mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
-	rsync -a --prune-empty-dirs --include '*/' --include '*.ko' --exclude '*' out/ $AK2DIR/modules/
-	cp "$AK2DIR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko"
-fi;
+echo "=> Finding modules"
+
+rsync -a --prune-empty-dirs --include '*/' --include '*.ko' --exclude '*' out/ $AK2DIR/modules/
+mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
+cp "$AK2DIR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko"
 
 cp  $KERNEL_DIR/out/arch/arm/boot/zImage $AK2DIR
 cp  $KERNEL_DIR/out/arch/arm/boot/dts/qcom/*.dtb $AK2DIR

@@ -1,7 +1,7 @@
 sudo add-apt-repository ppa:keithw/mosh
 sudo apt-get update
 sudo apt full-upgrade -y
-sudo apt-get install mosh build-essential bc libncurses5-dev libelf-dev python-all-dev python-software-properties diffutils colordiff vim rsync tmux -y
+sudo apt-get install mosh build-essential bc libncurses5-dev libelf-dev python-all-dev python-software-properties diffutils colordiff zip rsync tmux -y
 # Import .tmux.conf
 cat tmux.conf > ~/.tmux.conf
 # Install ccache
