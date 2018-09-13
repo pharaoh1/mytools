@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ -z $2 ] || [ -z $3 ]
 then
 	printf "\nUsage: \n\n\tbash build.sh [thread_amount] version_# release_type\n\n\tNOTE: '[thread_amount]' can be an integer or 'auto'.\n\n"
@@ -22,13 +22,18 @@ VER="-v$2"
 TYPE="_$3"
 export FINAL_ZIP="$KNAME"-"$DEVICE""$TYPE""$VER"_"$DATE".zip
 
-if [ -e  out/arch/arm/boot/zImage ];
+if [ -e  out/arch/arm/boot/zImage ]
 	then
-	rm -r out #Just to make sure it doesn't make flashable zip with previous zImage
+	rm -r out
+	rm $AK2DIR/*.dtb
+	rm $AK2DIR/zImage
+	rm -r $AK2DIR/modules/*
 	make clean
 	make mrproper
 	mkdir out
-fi;
+	mkdir -p $AK2DIR/modules/system/lib/modules
+	touch $AK2DIR/modules/system/lib/modules/placeholder
+fi
 
 if [ "$1" == 'auto' ]
 then
@@ -41,7 +46,7 @@ printf "\nTHREADS: $t\nVERSION: $2\nRELEASE: $3\nGCC VERSION: $GCCV\n\n"
 echo "==> Adapted build script, courtest of @facuarmo"
 echo "==> Making kernel binary..."
 make O=out perry_defconfig
-make O=out -j$t zImage
+make O=out -j$t zImage 2> tee fail.log
 if [ $? -ne 0 ]
 then
 	echo "!!! Kernel compilation failed, can't continue !!!"
@@ -78,14 +83,14 @@ cp  $KDIR/out/arch/arm/boot/dts/qcom/*.dtb $AK2DIR
 
 cd $AK2DIR
 
-if [ -e $AK2DIR/*.zip ];
+if [ -e $AK2DIR/*.zip ]
 then
 	rm *.zip
-fi;
+fi
 
 zip -r9 $FINAL_ZIP * -x .git README.md *placeholder > /dev/null
 
-if [ -e $FINAL_ZIP ];
+if [ -e $FINAL_ZIP ]
 then
 	echo "==> Flashable zip created"
 	echo "==> Flashable zip is stored in $AK2DIR folder with name $FINAL_ZIP"
@@ -93,4 +98,5 @@ then
 else
 	echo "!!! Failed to make zip. Abort !!!"
 	exit 1
-fi;
+fi
+

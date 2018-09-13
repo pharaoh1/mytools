@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ -z $1 ] || [ -z $2 ]
 then
 	printf "\nUsage: \n\n\tbash zip.sh version release_type\n\n"
@@ -16,6 +16,16 @@ VER="-v$1"
 TYPE="_$2"
 export FINAL_ZIP="$KNAME"-"$DEVICE""$TYPE""$VER"_"$DATE".zip
 
+if [ -e $AK2DIR/zImage ]
+then
+	rm $AK2DIR/*.dtb
+        rm $AK2DIR/zImage
+        rm -r $AK2DIR/modules/*
+        mkdir -p $AK2DIR/modules/system/lib/modules
+        touch $AK2DIR/modules/system/lib/modules/placeh
+older
+fi
+
 echo "==> Making Flashable zip"
 
 echo "=> Finding modules"
@@ -29,14 +39,14 @@ cp  $KDIR/out/arch/arm/boot/dts/qcom/*.dtb $AK2DIR
 
 cd $AK2DIR
 
-if [ -e $AK2DIR/*.zip ];
+if [ -e $AK2DIR/*.zip ]
 then
 	rm *.zip
-fi;
+fi
 
 zip -r9 $FINAL_ZIP * -x .git README.md *placeholder > /dev/null
 
-if [ -e $FINAL_ZIP ];
+if [ -e $FINAL_ZIP ]
 then
 	echo "==> Flashable zip Created"
 	echo "==> Flashable zip is stored in $AK2DIR folder with name $FINAL_ZIP"
@@ -44,5 +54,5 @@ then
 else
 	echo "!!! Failed to make zip. Abort !!!"
 	exit 1
-fi;
+fi
 
