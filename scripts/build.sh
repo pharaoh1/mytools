@@ -46,7 +46,7 @@ printf "\nTHREADS: $t\nVERSION: $2\nRELEASE: $3\nGCC VERSION: $GCCV\n\n"
 echo "==> Adapted build script, courtest of @facuarmo"
 echo "==> Making kernel binary..."
 make O=out perry_defconfig
-make O=out -j$t zImage 2> tee fail.log
+make O=out -j$t zImage |& tee build.log
 if [ $? -ne 0 ]
 then
 	echo "!!! Kernel compilation failed, can't continue !!!"
