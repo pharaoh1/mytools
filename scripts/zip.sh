@@ -17,11 +17,10 @@ VER="-v$1"
 TYPE="_$2"
 export FINAL_ZIP="$KNAME"-"$DEVICE""$TYPE""$VER"_"$DATE".zip
 
-# Sanity check to avoid using erroneous binaries
-if [ -e $AK2DIR/*Image* ]
+if [ -e $AK2DIR/zImage ]
 then
 	rm $AK2DIR/*.dtb
-        rm $AK2DIR/*Image*
+        rm $AK2DIR/zImage
         rm -r $AK2DIR/modules/*
         mkdir -p $AK2DIR/modules/system/lib/modules
         touch $AK2DIR/modules/system/lib/modules/placeholder
@@ -49,18 +48,14 @@ zip -r9 $FINAL_ZIP * -x .git README.md *placeholder > /dev/null
 
 if [ -e $FINAL_ZIP ]
 then
-	echo "==> Flashable zip Created"
-	echo "==> Flashable zip is stored in $AK2DIR folder with name $FINAL_ZIP"
+	echo "==> Flashable zip created"
+        echo "==> Uploading $FINAL_ZIP to Google Drive"
+        gdrive upload --delete $AK2DIR/$FINAL_ZIP
+        echo "==> Upload complete!"
+        echo "*** Enjoy your kernel! ***"
+        exit 0
 else
-	echo "!!! Failed to make zip. Abort !!!"
-	exit 1
-fi
-
-echo "==> Uploading $FINAL_ZIP to Google Drive"
-gdrive upload --parent Orgasmic_Alpha --delete $FINAL_ZIP
-if [ -ne 0 ]
-then
-	echo "!!! Upload failed! Check connection and try again. !!!
+        echo "!!! Unexpected error. Abort !!!"
 	exit 1
 fi
 
