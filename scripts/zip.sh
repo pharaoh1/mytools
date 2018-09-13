@@ -9,6 +9,7 @@ KDIR=$PWD
 AK2DIR=~/AnyKernel2
 DATE=$(date +"%m%d%y")
 KNAME="OrgasmKernel"
+export ARCH=arm
 export DEVICE="perry"
 export KBUILD_BUILD_USER="RblLn"
 export KBUILD_BUILD_HOST="PleasureBox"
@@ -30,12 +31,12 @@ echo "==> Making Flashable zip"
 
 echo "=> Finding modules"
 
-rsync -aP --include '*.ko' --exclude '*' out/modinstall/ $AK2DIR/modules/
+rsync -P --include '*.ko' --exclude '*' out/modinstall/ $AK2DIR/modules/system/lib/modules/
 mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
 mv "$AK2DIR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko"
 
-cp  $KDIR/out/arch/arm/boot/zImage $AK2DIR
-cp  $KDIR/out/arch/arm/boot/dts/qcom/*.dtb $AK2DIR
+cp  $KDIR/out/arch/$ARCH/boot/zImage $AK2DIR
+#cp  $KDIR/out/arch/$ARCH/boot/dts/qcom/*.dtb $AK2DIR
 
 cd $AK2DIR
 

@@ -11,7 +11,8 @@ TCDIR=~/mytools/toolchains/arm-linux-androideabi-4.9/bin/arm-linux-androideabi-
 DATE=$(date +"%m%d%y")
 KNAME="OrgasmKernel"
 
-export ARCH=arm && export SUBARCH=arm
+export ARCH=arm
+export SUBARCH=arm
 export CROSS_COMPILE=$TCDIR
 export USE_CCACHE=1
 export COMPRESS_CACHE=1
@@ -22,11 +23,11 @@ VER="-v$2"
 TYPE="_$3"
 export FINAL_ZIP="$KNAME"-"$DEVICE""$TYPE""$VER"_"$DATE".zip
 
-if [ -e  out/arch/arm/boot/zImage ]
+if [ -e  out/arch/$ARCH/boot/*Image* ]
 	then
 	rm -r out
 	rm $AK2DIR/*.dtb
-	rm $AK2DIR/zImage
+	rm $AK2DIR/*Image*
 	rm -r $AK2DIR/modules/*
 	make clean
 	make mrproper
@@ -74,12 +75,12 @@ echo "==> Making Flashable zip"
 
 echo "=> Finding modules"
 
-rsync -aP --include '*.ko' --exclude '*' out/modinstall/ $AK2DIR/modules/
+rsync -P --include '*.ko' --exclude '*' out/modinstall/ $AK2DIR/modules/system/lib/modules
 mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
 mv "$AK2DIR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko"
 
-cp  $KDIR/out/arch/arm/boot/zImage $AK2DIR
-cp  $KDIR/out/arch/arm/boot/dts/qcom/*.dtb $AK2DIR
+cp  $KDIR/out/arch/$ARCH/boot/zImage $AK2DIR
+#cp  $KDIR/out/arch/$ARCH/boot/dts/qcom/*.dtb $AK2DIR
 
 cd $AK2DIR
 
