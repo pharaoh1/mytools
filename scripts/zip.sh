@@ -23,15 +23,14 @@ then
         rm $AK2DIR/zImage
         rm -r $AK2DIR/modules/*
         mkdir -p $AK2DIR/modules/system/lib/modules
-        touch $AK2DIR/modules/system/lib/modules/placeh
-older
+        touch $AK2DIR/modules/system/lib/modules/placeholder
 fi
 
 echo "==> Making Flashable zip"
 
 echo "=> Finding modules"
 
-rsync -P --include '*.ko' --exclude '*' out/modinstall/ $AK2DIR/modules/system/lib/modules/
+find out/modinstall/ -name '*.ko' -type f -exec cp '{}' "$AK2DIR/modules/system/lib/modules/" \;
 mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
 mv "$AK2DIR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko"
 
