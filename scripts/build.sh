@@ -23,6 +23,7 @@ VER="-v$2"
 TYPE="_$3"
 export FINAL_ZIP="$KNAME"-"$DEVICE""$TYPE""$VER"_"$DATE".zip
 
+# Sanity check to avoid using erroneous binaries
 if [ -e  out/arch/$ARCH/boot/*Image* ]
 	then
 	rm -r out
@@ -69,6 +70,14 @@ then
 	exit 1
 fi
 
+# One more sanity check
+if [ -e $AK2DIR/*Image* ]
+then
+	rm $AK2DIR/*Image*
+	rm $AK2DIR/*.dtb
+	rm $AK2DIR/modules/system/lib/modules/*.ko
+fi
+
 echo "==> Kernel compilation completed"
 
 echo "==> Making Flashable zip"
@@ -95,7 +104,6 @@ if [ -e $FINAL_ZIP ]
 then
 	echo "==> Flashable zip created"
 	echo "==> Flashable zip is stored in $AK2DIR folder with name $FINAL_ZIP"
-	exit 0
 else
 	echo "!!! Failed to make zip. Abort !!!"
 	exit 1

@@ -17,10 +17,11 @@ VER="-v$1"
 TYPE="_$2"
 export FINAL_ZIP="$KNAME"-"$DEVICE""$TYPE""$VER"_"$DATE".zip
 
-if [ -e $AK2DIR/zImage ]
+# Sanity check to avoid using erroneous binaries
+if [ -e $AK2DIR/*Image* ]
 then
 	rm $AK2DIR/*.dtb
-        rm $AK2DIR/zImage
+        rm $AK2DIR/*Image*
         rm -r $AK2DIR/modules/*
         mkdir -p $AK2DIR/modules/system/lib/modules
         touch $AK2DIR/modules/system/lib/modules/placeholder
@@ -50,7 +51,6 @@ if [ -e $FINAL_ZIP ]
 then
 	echo "==> Flashable zip Created"
 	echo "==> Flashable zip is stored in $AK2DIR folder with name $FINAL_ZIP"
-	exit 0
 else
 	echo "!!! Failed to make zip. Abort !!!"
 	exit 1
