@@ -56,3 +56,11 @@ else
 	exit 1
 fi
 
+echo "==> Uploading $FINAL_ZIP to Google Drive"
+gdrive upload --parent Orgasmic_Alpha --delete $FINAL_ZIP
+if [ -ne 0 ]
+then
+	echo "!!! Upload failed! Check connection and try again. !!!
+	exit 1
+fi
+
