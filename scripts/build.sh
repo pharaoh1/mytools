@@ -25,7 +25,7 @@ export FINAL_ZIP="$KNAME"-"$DEVICE""$TYPE""$VER"_"$DATE".zip
 # Sanity check to avoid using erroneous binaries
 if [ -e  out/arch/$ARCH/boot/*Image* ] ; then
 	rm -r out
-	rm $AK2DIR/*.dtb
+#	rm $AK2DIR/*.dtb
 	rm $AK2DIR/*Image*
 	rm -r $AK2DIR/modules/*
 	make clean
@@ -69,10 +69,9 @@ fi
 
 # One more sanity check
 if [ -e $AK2DIR/*Image* ] ; then
-	rm $AK2DIR/*.zip
 	rm $AK2DIR/*Image*
-	rm $AK2DIR/*.dtb
-	rm $AK2DIR/modules/system/lib/modules/*.ko
+#	rm $AK2DIR/*.dtb
+	rm $AK2DIR/modules/system/lib/modules/pronto/*.ko
 fi
 
 echo "==> Kernel compilation completed"
