@@ -45,9 +45,9 @@ printf "\nTHREADS: $t\nVERSION: $2\nRELEASE: $3\nGCC VERSION: $GCCV\n\n"
 echo "==> Adapted build script, courtest of @facuarmo"
 echo "==> Making kernel binary..."
 make O=out perry_defconfig
-make O=out -j$t zImage 2> fail.log || echo "!!! Kernel compilation failed, can't continue !!!" ; gdrive upload --delete fail.log ; exit 2
+make O=out -j$t zImage 2> fail.log || echo "!!! Kernel compilation failed, can't continue !!!" && gdrive upload --delete fail.log && exit 2
 echo "=> Making modules..."
-make O=out -j$t modules 2>> fail.log || echo "Module compilation failed, can't continue." ; gdrive upload --delete fail.log ; exit 1
+make O=out -j$t modules 2>> fail.log || echo "Module compilation failed, can't continue." && gdrive upload --delete fail.log && exit 1
 rm -rf out/modinstall
 mkdir out/modinstall
 make O=out -j$t modules_install INSTALL_MOD_PATH=modinstall INSTALL_MOD_STRIP=1 2>> fail.log || echo "Module installation failed, can't continue." ; gdrive upload --delete fail.log ; exit 1
