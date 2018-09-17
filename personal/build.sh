@@ -40,14 +40,16 @@ else
 fi
 
 # Check if cleaning
-if [ $4 == 'yb' ] || [ $4 == 'b' ]; then
+if [[ $4 == 'yb' ]] || [[ $4 == 'b' ]]; then
 	echo "==> Hold on a sec..."
 	make clean
 	make mrproper
+	echo "==> Ready!"
 fi
 
 printf "\nTHREADS: $t\nVERSION: $2\nRELEASE: $3\nGCC VERSION: $GCCV\n\n"
 echo "==> Adapted build script, courtest of @facuarmo"
+sleep 1
 echo "==> Making kernel binary..."
 make O=out perry_defconfig
 make O=out -j$t $IMG |& tee fail.log
@@ -105,13 +107,14 @@ if [ -e $FINAL_ZIP ]; then
 	gdrive upload --delete $AK2DIR/$FINAL_ZIP
 	echo "==> Upload complete!"
 	echo "*** Enjoy your kernel! ***"
-	if [ $4 == 'ya' ] || [ $4 == 'b' ]; then
+	if [[ $4 == 'ya' ]] || [[ $4 == 'b' ]]; then
 		cd $KDIR
 		echo "==> Cleaning up..."
 		make clean
 		make mrproper
 		rm -rf out/
 		mkdir -p out/modinstall
+		echo "==> All done!"
 	fi
 	exit 0
 else
