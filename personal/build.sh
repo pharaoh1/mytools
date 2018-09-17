@@ -89,8 +89,8 @@ echo "==> Making Flashable zip"
 echo "=> Finding modules"
 
 find out/modinstall/ -name '*.ko' -type f -exec cp '{}' "$AK2DIR/modules/system/lib/modules/" \;
-mkdir -p "$AK2DIR/modules/system/lib/modules/prima"
-mv "$AK2DIR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/prima/wlan.ko"
+mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
+mv "$AK2DIR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko"
 
 cp  $KDIR/out/arch/$ARCH/boot/$IMG $AK2DIR
 ###cp  $KDIR/out/arch/$ARCH/boot/dts/qcom/*.dtb $AK2DIR
