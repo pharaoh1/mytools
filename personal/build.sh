@@ -106,9 +106,12 @@ if [ -e $FINAL_ZIP ]; then
 	echo "==> Upload complete!"
 	echo "*** Enjoy your kernel! ***"
 	if [ $4 == 'ya' ] || [ $4 == 'b' ]; then
+		cd $KDIR
 		echo "==> Cleaning up..."
 		make clean
 		make mrproper
+		rm -rf out/
+		mkdir -p out/modinstall
 	fi
 	exit 0
 else
