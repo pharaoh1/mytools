@@ -5,6 +5,15 @@ if [ -z $2 ] || [ -z $3 ] ; then
 	exit 1
 fi
 
+# Function definition
+
+function fail()
+{
+	echo $1
+        gdrive upload --delete fail.log
+        exit 1
+}
+
 # Adjust these variables for your build
 KNAME="OrgasmKernel"
 IMG=zImage
@@ -52,25 +61,10 @@ echo "==> Adapted build script, courtest of @facuarmo"
 sleep 1
 echo "==> Making kernel binary..."
 make O=out perry_defconfig
-make O=out -j$t $IMG |& tee fail.log
-if [ ${PIPESTATUS[0]} -ne 0 ]; then
-	echo "!!! Kernel compilation failed, can't continue !!!"
-	gdrive upload --delete fail.log
-	exit 2
-fi
+make O=out -j$t $IMG 2> fail.log || fail "!!! Kernel copilation failed, can't continue !!!"
 echo "=> Making modules..."
-make O=out -j$t modules |& tee -a fail.log
-if [ ${PIPESTATUS[0]} -ne 0 ]; then
-	echo "Module compilation failed, can't continue."
-	gdrive upload --delete fail.log
-	exit 1
-fi
-make O=out -j$t modules_install INSTALL_MOD_PATH=modinstall INSTALL_MOD_STRIP=1 |& tee -a fail.log
-if [ ${PIPESTATUS[0]} -ne 0 ]; then
-	echo "Module installation failed, can't continue."
-	gdrive upload --delete fail.log
-	exit 1
-fi
+make O=out -j$t modules 2>> fail.log || fail "Module compilation failed, can't continue."
+make O=out -j$t modules_install INSTALL_MOD_PATH=modinstall INSTALL_MOD_STRIP=1 2>> fail.log || fail "Module installation failed, can't continue."
 
 if [ -e fail.log ]; then
 	rm fail.log
@@ -121,4 +115,3 @@ else
 	echo "!!! Unexpected error. Abort !!!"
 	exit 1
 fi
- 
