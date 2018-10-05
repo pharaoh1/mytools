@@ -1,18 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Uncomment lines starting with '###' if your build produces Device Tree Blob (.dtb) files
-if [ -z $2 ] || [ -z $3 ] ; then
+if [ -z $1 ] || [ -z $2 ] ; then
 	printf "\nUsage: \n\n\tbash build.sh <thread_amount> <version_#> <release_type> <make_clean>\n\n\tNOTE: '<thread_amount>' can be an integer or 'auto'.\n\n\t'<make_clean>' is either 'ya' (yes after), 'yb' (yes before), 'b' (both) or blank\n\n"
 	exit 1
 fi
-
-# Function definition
-
-function fail()
-{
-	echo $1
-        gdrive upload --delete fail.log
-        exit 1
-}
 
 # Adjust these variables for your build
 KNAME="OrgasmKernel"
@@ -23,6 +14,10 @@ export ARCH=arm
 export DEVICE="perry"
 export KBUILD_BUILD_USER="RblLn"
 export KBUILD_BUILD_HOST="PleasureBox"
+# For GDrive uploading
+BETA_DIR=1kck7RBzMCc8k1DgExWLQWGnftADI_yn6
+UPSTREAM_DIR=1N7VCEe7KloVF_MFIn3lwcvYodLNhNhNs
+REDO_DIR=1C29fLGrow11cFyo8rwz0SLL7he8wxHi5
 #
 
 export SUBARCH=$ARCH
@@ -36,12 +31,6 @@ TYPE="_$3"
 FINAL_ZIP="$KNAME"-"$DEVICE""$TYPE""$VER"_"$DATE".zip
 GCCV=$("$CROSS_COMPILE"gcc -v 2>&1 | tail -1 | cut -d ' ' -f 3)
 
-# Sanity check to avoid using erroneous binaries
-if [ -e  out/arch/$ARCH/boot/$IMG ]; then
-	rm -rf out/
-	mkdir -p out/modinstall
-fi
-
 if [ $1 == 'auto' ]; then
 	t=$(nproc --all)
 else
@@ -53,18 +42,35 @@ if [[ $4 == 'yb' ]] || [[ $4 == 'b' ]]; then
 	echo "==> Hold on a sec..."
 	make clean
 	make mrproper
+	rm -rf out
+	mkdir -p out/modinstall
 	echo "==> Ready!"
 fi
 
 printf "\nTHREADS: $t\nVERSION: $2\nRELEASE: $3\nGCC VERSION: $GCCV\n\n"
-echo "==> Adapted build script, courtest of @facuarmo"
+echo "==> Adapted build script, courtesy of @facuarmo"
 sleep 1
 echo "==> Making kernel binary..."
-make O=out perry_defconfig
-make O=out -j$t $IMG 2> fail.log || fail "!!! Kernel copilation failed, can't continue !!!"
+make O=out "$DEVICE"_defconfig
+make O=out -j$t $IMG |& tee fail.log
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+	echo "!!! Kernel compilation failed, can't continue !!!"
+	gdrive upload --delete fail.log
+	exit 2
+fi
 echo "=> Making modules..."
-make O=out -j$t modules 2>> fail.log || fail "Module compilation failed, can't continue."
-make O=out -j$t modules_install INSTALL_MOD_PATH=modinstall INSTALL_MOD_STRIP=1 2>> fail.log || fail "Module installation failed, can't continue."
+make O=out -j$t modules |& tee -a fail.log
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+	echo "Module compilation failed, can't continue."
+	gdrive upload --delete fail.log
+	exit 1
+fi
+make O=out -j$t modules_install INSTALL_MOD_PATH=modinstall INSTALL_MOD_STRIP=1 |& tee -a fail.log
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+	echo "Module installation failed, can't continue."
+	gdrive upload --delete fail.log
+	exit 1
+fi
 
 if [ -e fail.log ]; then
 	rm fail.log
@@ -73,6 +79,7 @@ fi
 # One more sanity check
 if [ -e $AK2DIR/$IMG ]; then
 	rm $AK2DIR/$IMG
+	rm $AK2DIR/$FINAL_ZIP
 ###	rm $AK2DIR/*.dtb
 	rm -rf $AK2DIR/modules/system/lib/modules/*
 	touch $AK2DIR/modules/system/lib/modules/placeholder
@@ -98,9 +105,14 @@ zip -r9 $FINAL_ZIP * -x .git README.md *placeholder > /dev/null
 if [ -e $FINAL_ZIP ]; then
 	echo "==> Flashable zip created"
 	echo "==> Uploading $FINAL_ZIP to Google Drive"
-	gdrive upload --delete $AK2DIR/$FINAL_ZIP
+	if [[ $3 == 'Beta' ]]; then
+		gdrive upload --delete --parent $BETA_DIR $AK2DIR/$FINAL_ZIP
+	elif [[ $3 == 'Upstream' ]]; then
+		gdrive upload --delete --parent $UPSTREAM_DIR $AK2DIR/$FINAL_ZIP
+	else
+		gdrive upload --delete --parent $REDO_DIR $AK2DIR/$FINAL_ZIP
+	fi
 	echo "==> Upload complete!"
-	echo "*** Enjoy your kernel! ***"
 	if [[ $4 == 'ya' ]] || [[ $4 == 'b' ]]; then
 		cd $KDIR
 		echo "==> Cleaning up..."
@@ -115,3 +127,4 @@ else
 	echo "!!! Unexpected error. Abort !!!"
 	exit 1
 fi
+ 
