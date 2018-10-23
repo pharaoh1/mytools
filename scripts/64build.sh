@@ -7,10 +7,10 @@ fi
 
 # Adjust these variables for your build
 KNAME="OrgasmKernel"
-IMG=zImage
-TCDIR=~/mytools/toolchains/linaro-4.9.4-arm-eabi/bin/arm-eabi-
+IMG=Image.gz
+TCDIR=~/mytools/toolchains/linaro-4.9.4-aarch64-linux-gnu/bin/aarch64-linux-gnu-
 AK2DIR=AnyKernel2
-export ARCH=arm
+export ARCH=arm64
 export DEVICE="perry"
 export KBUILD_BUILD_USER="RblLn"
 export KBUILD_BUILD_HOST="PleasureBox"
@@ -92,7 +92,7 @@ echo "==> Kernel compilation completed"
 
 echo "==> Making Flashable zip"
 
-echo "=> Finding modules"
+echo "==> Finding modules"
 
 find out/modinstall/ -name '*.ko' -type f -exec cp '{}' "$AK2DIR/modules/system/lib/modules/" \;
 mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
@@ -115,7 +115,11 @@ if [ -e $FINAL_ZIP ]; then
 	else
 		gdrive upload --delete --parent $REDO_DIR $AK2DIR/$FINAL_ZIP
 	fi
-	echo "==> Upload complete!"
+	if [ $? -e 0 ]; then
+		echo "==> Upload complete!"
+	else
+		echo "==> Upload failed!"
+		exit 1
 	if [[ $4 == 'ya' ]] || [[ $4 == 'b' ]]; then
 		cd $KDIR
 		echo "==> Cleaning up..."
