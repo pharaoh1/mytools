@@ -8,8 +8,9 @@ fi
 # Adjust these variables for your build
 KNAME="OrgasmKernel"
 IMG=zImage
+KDIR=~/ok
 TCDIR=~/mytools/toolchains/linaro-4.9.4-arm-eabi/bin/arm-eabi-
-AK2DIR=AnyKernel2
+AK2DIR=$KDIR/AnyKernel2
 export ARCH=arm
 export DEVICE="perry"
 export KBUILD_BUILD_USER="RblLn"
@@ -60,7 +61,7 @@ make O=out -j$t $IMG |& tee fail.log
 if [ ${PIPESTATUS[0]} -ne 0 ]; then
 	echo "!!! Kernel compilation failed, can't continue !!!"
 	gdrive upload --delete fail.log
-	exit 2
+	exit 1
 fi
 echo "=> Making modules..."
 make O=out -j$t modules |& tee -a fail.log
@@ -92,7 +93,7 @@ echo "==> Kernel compilation completed"
 
 echo "==> Making Flashable zip"
 
-echo "=> Finding modules"
+echo "==> Finding modules"
 
 find out/modinstall/ -name '*.ko' -type f -exec cp '{}' "$AK2DIR/modules/system/lib/modules/" \;
 mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
@@ -112,10 +113,16 @@ if [ -e $FINAL_ZIP ]; then
 		gdrive upload --delete --parent $BETA_DIR $AK2DIR/$FINAL_ZIP
 	elif [[ $3 == 'Upstream' ]]; then
 		gdrive upload --delete --parent $UPSTREAM_DIR $AK2DIR/$FINAL_ZIP
-	else
+	elif [[ $3 == 'Redo*' ]]; then
 		gdrive upload --delete --parent $REDO_DIR $AK2DIR/$FINAL_ZIP
+	else
+		gdrive upload --delete $AK2DIR/$FINAL_ZIP
 	fi
-	echo "==> Upload complete!"
+	if [ $? -ne 0 ]; then
+		echo "!!! Upload failed. Unexpected error. !!!"
+	else
+		echo "==> Upload complete!"
+	fi
 	if [[ $4 == 'ya' ]] || [[ $4 == 'b' ]]; then
 		cd $KDIR
 		echo "==> Cleaning up..."
