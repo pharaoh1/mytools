@@ -8,7 +8,7 @@ fi
 # Adjust these variables for your build
 KNAME="OrgasmKernel"
 IMG=zImage
-KDIR=~/ok
+KDIR=$PWD
 TCDIR=~/mytools/toolchains/linaro-4.9.4-arm-eabi/bin/arm-eabi-
 AK2DIR=$KDIR/AnyKernel2
 export ARCH=arm
@@ -25,7 +25,6 @@ export SUBARCH=$ARCH
 export CROSS_COMPILE=$TCDIR
 export USE_CCACHE=1
 export COMPRESS_CACHE=1
-KDIR=$PWD
 DATE=$(date +"%m%d%y")
 VER="-v$2"
 TYPE="_$3"
@@ -41,12 +40,11 @@ fi
 # Check if cleaning
 if [[ $4 == 'yb' ]] || [[ $4 == 'b' ]]; then
 	echo "==> Hold on a sec..."
-	make clean
-	make mrproper
+	sudo make clean && sudo make mrproper
 	rm -rf out
 	mkdir -p out/modinstall
-	rm $AK2DIR/$IMG
-	rm $AK2DIR/$FINAL_ZIP
+	rm $AK2DIR/*Image*
+	rm $AK2DIR/*.zip
 ###	rm $AK2DIR/*.dtb
 	rm -f $AK2DIR/modules/system/lib/modules/*.ko
 	echo "==> Ready!"
@@ -82,9 +80,9 @@ if [ -e fail.log ]; then
 fi
 
 # One more sanity check
-if [ -e $AK2DIR/$IMG ]; then
-	rm $AK2DIR/$IMG
-	rm $AK2DIR/$FINAL_ZIP
+if [ -e $AK2DIR/*Image* ]; then
+	rm $AK2DIR/*Image*
+	rm $AK2DIR/*.zip
 ###	rm $AK2DIR/*.dtb
 	rm -f $AK2DIR/modules/system/lib/modules/*.ko
 fi
@@ -95,9 +93,8 @@ echo "==> Making Flashable zip"
 
 echo "==> Finding modules"
 
-find out/modinstall/ -name '*.ko' -type f -exec cp '{}' "$AK2DIR/modules/system/lib/modules/" \;
-mkdir -p "$AK2DIR/modules/system/lib/modules/pronto"
-mv "$AK2DIR/modules/system/lib/modules/wlan.ko" "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko"
+find out/modinstall/ -name '*.ko' -type f -exec cp '{}' "$AK2DIR/modules/system/lib/modules/pronto" \;
+ln -sf "$AK2DIR/modules/system/lib/modules/pronto/pronto_wlan.ko" "$AK2DIR/modules/system/lib/modules/wlan.ko"
 
 cp  $KDIR/out/arch/$ARCH/boot/$IMG $AK2DIR
 ###cp  $KDIR/out/arch/$ARCH/boot/dts/qcom/*.dtb $AK2DIR
@@ -108,7 +105,7 @@ zip -r9 $FINAL_ZIP * -x .git README.md *placeholder > /dev/null
 
 if [ -e $FINAL_ZIP ]; then
 	echo "==> Flashable zip created"
-	echo "==> Uploading $FINAL_ZIP to Google Drive"
+	echo "==> Uploading Kernel Zip to Google Drive"
 	if [[ $3 == 'Beta' ]]; then
 		gdrive upload --delete --parent $BETA_DIR $AK2DIR/$FINAL_ZIP
 	elif [[ $3 == 'Upstream' ]]; then
@@ -126,8 +123,10 @@ if [ -e $FINAL_ZIP ]; then
 	if [[ $4 == 'ya' ]] || [[ $4 == 'b' ]]; then
 		cd $KDIR
 		echo "==> Cleaning up..."
-		make clean
-		make mrproper
+		sudo make clean && sudo make mrproper
+		rm $AK2DIR/*Image*
+		rm $AK2DIR/*.dtb
+		rm -f $AK2DIR/modules/system/lib/modules/*.ko
 		rm -rf out/
 		mkdir -p out/modinstall
 		echo "==> All done!"
