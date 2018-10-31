@@ -1,7 +1,7 @@
 #!/bin/bash
 # Uncomment lines starting with '###' if your build produces Device Tree Blob (.dtb) files
 if [ -z $1 ] || [ -z $2 ] ; then
-	printf "\nUsage: \n\n\tbash build.sh <thread_amount> <version_#> <release_type> <make_clean>\n\n\tNOTE: '<thread_amount>' can be an integer or 'auto'.\n\n\t'<make_clean>' is either 'ya' (yes after), 'yb' (yes before), 'b' (both) or blank\n\n"
+	printf "\nUsage: \n\n\tbash build.sh <thread_amount> <version_#> <release_type> <make_clean>\n\n\tNOTE: '<thread_amount>' can be an integer or 'auto'.\n\n\t'<make_clean>' is either 'y', or blank\n\n"
 	exit 1
 fi
 
@@ -38,7 +38,7 @@ else
 fi
 
 # Check if cleaning
-if [[ $4 == 'yb' ]] || [[ $4 == 'b' ]]; then
+if [[ $4 == 'y' ]]; then
 	echo "==> Hold on a sec..."
 	sudo make clean && sudo make mrproper
 	rm -rf out
@@ -119,17 +119,6 @@ if [ -e $FINAL_ZIP ]; then
 		echo "!!! Upload failed. Unexpected error. !!!"
 	else
 		echo "==> Upload complete!"
-	fi
-	if [[ $4 == 'ya' ]] || [[ $4 == 'b' ]]; then
-		cd $KDIR
-		echo "==> Cleaning up..."
-		sudo make clean && sudo make mrproper
-		rm $AK2DIR/*Image*
-		rm $AK2DIR/*.dtb
-		rm -f $AK2DIR/modules/system/lib/modules/*.ko
-		rm -rf out/
-		mkdir -p out/modinstall
-		echo "==> All done!"
 	fi
 	exit 0
 else
