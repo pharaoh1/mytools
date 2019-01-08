@@ -56,13 +56,20 @@ fi
 printf "\nTHREADS: $t\nVERSION: $2\nRELEASE: $3\nGCC VERSION: $GCCV\n\n"
 echo "==> Adapted build script, courtesy of @facuarmo"
 sleep 1
-echo "==> Making kernel binary..."
+echo "==> Making kernel image..."
 make O=out "$DEVICE"_defconfig
 make O=out -j$t $IMG |& tee fail.log
 if [ ${PIPESTATUS[0]} -ne 0 ]; then
 	echo "!!! Kernel compilation failed, can't continue !!!"
 	gdrive upload --delete fail.log
-	exit 2
+	exit 1
+fi
+echo "=> Making DTBs..."
+make O=out -j$t dtbs |& tee -a fail.log
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+	echo "DTB compilation failed, cannot continue."
+	gdrive upload --delete fail.log
+	exit 1
 fi
 echo "=> Making modules..."
 make O=out -j$t modules |& tee -a fail.log

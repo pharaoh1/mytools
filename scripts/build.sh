@@ -26,9 +26,7 @@ REDO_DIR=1C29fLGrow11cFyo8rwz0SLL7he8wxHi5
 export USE_CCACHE=1
 export COMPRESS_CACHE=1
 DATE=$(date +"%m%d%y")
-VER="v$2"
-TYPE="$3"
-FINAL_ZIP="$KNAME"_"$TYPE"-"$VER"_"$DATE".zip
+FINAL_ZIP="$KNAME"_"$2"-"v$3"_"$DATE".zip
 GCCV=$("$CROSS_COMPILE"gcc -v 2>&1 | tail -1 | cut -d ' ' -f 3)
 
 if [ $1 == 'auto' ]; then
@@ -57,7 +55,7 @@ fi
 printf "\nTHREADS: $t\nVERSION: $2\nRELEASE: $3\nGCC VERSION: $GCCV\n\n"
 echo "==> Adapted build script, courtesy of @facuarmo"
 sleep 1
-echo "==> Making kernel binary..."
+echo "==> Making kernel image..."
 make O=out "$DEVICE"_defconfig
 make O=out -j$t $IMG |& tee fail.log
 if [ ${PIPESTATUS[0]} -ne 0 ]; then
@@ -65,6 +63,13 @@ if [ ${PIPESTATUS[0]} -ne 0 ]; then
 	gdrive upload --delete fail.log
 	exit 1
 fi
+###echo "=> Making DTBs..."
+###make O=out -j$t dtbs |& tee -a fail.log
+###if [ ${PIPESTATUS[0]} -ne 0 ]; then
+###	echo "DTB compilation failed, cannot continue."
+###	gdrive upload --delete fail.log
+###	exit 1
+###fi
 echo "=> Making modules..."
 make O=out -j$t modules |& tee -a fail.log
 if [ ${PIPESTATUS[0]} -ne 0 ]; then
@@ -109,11 +114,11 @@ zip -r9 $FINAL_ZIP * -x .git README.md *placeholder > /dev/null
 if [ -e $FINAL_ZIP ]; then
 	echo "==> Flashable zip created"
 	echo "==> Uploading Kernel Zip to Google Drive"
-	if [[ $3 == 'Beta' ]]; then
+	if [[ $2 == 'Beta' ]]; then
 		gdrive upload --delete --parent $BETA_DIR $AK2DIR/$FINAL_ZIP
-	elif [[ $3 == 'Upstream' ]]; then
+	elif [[ $2 == 'Upstream' ]]; then
 		gdrive upload --delete --parent $UPSTREAM_DIR $AK2DIR/$FINAL_ZIP
-	elif [[ $3 == 'Redo'* ]]; then
+	elif [[ $2 == 'Redo'* ]]; then
 		gdrive upload --delete --parent $REDO_DIR $AK2DIR/$FINAL_ZIP
 	else
 		gdrive upload --delete $AK2DIR/$FINAL_ZIP
