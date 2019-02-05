@@ -97,4 +97,5 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
-export OOO_FORCE_DESKTOP=gnome
+alias git=hub
+export PATH="/bin:/usr/lib/ccache:$PATH"
