@@ -16,16 +16,19 @@ if [ -z $1 ]; then
 	usage
 fi
 
-if [$1 == "arm"]; then
+KDIR=$PWD
+AK2DIR=$KDIR/AnyKernel2
+
+if [[ $1 == 'arm' ]]; then
 	IMG=zImage
 	export ARCH=arm
 	export CROSS_COMPILE=$KDIR/../mytools/toolchains/linaro-4.9.4-arm-eabi/bin/arm-eabi-
-elif [$1 == "arm64"]; then
+elif [[ $1 == 'arm64' ]]; then
 	IMG=Image.gz
 	export ARCH=arm64
 	export CROSS_COMPILE=$KDIR/../mytools/toolchains/linaro-4.9.4-aarch64-linux-gnu/bin/aarch64-linux-gnu-
 else
-	printf "ERROR: ARCH is either arm or arm64"
+	echo "ERROR: ARCH is either arm or arm64"
 	exit 1
 fi
 
@@ -38,8 +41,6 @@ fi
 KNAME="RebelKernel"
 export KBUILD_BUILD_USER="RblLn"
 export KBUILD_BUILD_HOST="Lion's_Den"
-KDIR=$PWD
-AK2DIR=$KDIR/AnyKernel2
 DATE=$(date +"%m%d%y")
 GCCV=$("$CROSS_COMPILE"gcc -v 2>&1 | tail -1 | cut -d ' ' -f 3)
 # For GDrive uploading
@@ -64,11 +65,12 @@ if [ -e out/arch/arm/boot/*Image* ]; then
 fi
 #
 
-echo "\nARCHITECTURE: $1\nDEVICE: $2\nTHREADS: $t\n"
-if [ -e $4 ] && [ -e $5 ]; then
-	echo "TYPE: $4\nVERSION: $5\nGCC VERSION: $GCCV\n\n"
+printf "\nARCHITECTURE: $1\nDEVICE: $2\nTHREADS: $t\n"
+if [ -z $4 ] && [ -z $5 ]; then
+	printf "GCC VERSION: $GCCV\n\n"
 else
-	echo "GCC VERSION: $GCCV\n\n"
+	printf "TYPE: $4\nVERSION: $5\nGCC VERSION: $GCCV\n\n"
+fi
 echo "==> Build script by facuarmo and RebelLion420"
 sleep 1
 echo "==> Making kernel image..."
