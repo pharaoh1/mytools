@@ -38,15 +38,13 @@ else
 	t=$3
 fi
 
+# Personal touches, change these for your build
 KNAME="RebelKernel"
 export KBUILD_BUILD_USER="RblLn"
 export KBUILD_BUILD_HOST="Lion's_Den"
+#
 DATE=$(date +"%m%d%y")
 GCCV=$("$CROSS_COMPILE"gcc -v 2>&1 | tail -1 | cut -d ' ' -f 3)
-# For GDrive uploading
-BETA_DIR=1kck7RBzMCc8k1DgExWLQWGnftADI_yn6
-RELEASE_DIR=1N7VCEe7KloVF_MFIn3lwcvYodLNhNhNs
-#
 
 export SUBARCH=$ARCH
 export DEVICE=$2
@@ -123,11 +121,11 @@ find out/modinstall/ -name '*.ko' -type f -exec cp '{}' "$AK2DIR/modules/system/
 echo "==> Making Flashable zip"
 
 if [ -z $4 ] || [ -z $KNAME ]; then
-	FINAL_ZIP="$DEVICE"_kernel-"$DATE".zip
+	FINAL="$DEVICE"_kernel-"$DATE".zip
 elif [ -z $4 ]; then
-	FINAL_ZIP="$KNAME"_"$DATE".zip
+	FINAL="$KNAME"_"$DATE".zip
 else
-	FINAL_ZIP="$KNAME"_"$4"-"v$5"_"$DATE".zip
+	FINAL="$KNAME"_"$4"-"v$5"_"$DATE".zip
 fi
 
 cp  $KDIR/out/arch/$ARCH/boot/$IMG $AK2DIR
@@ -135,17 +133,17 @@ cp  $KDIR/out/arch/$ARCH/boot/$IMG $AK2DIR
 
 cd $AK2DIR
 
-zip -r9 $FINAL_ZIP * -x .git README.md *placeholder > /dev/null
+zip -r9 $FINAL * -x .git README.md *placeholder > /dev/null
 
-if [ -e $FINAL_ZIP ]; then
+if [ -e $FINAL ]; then
 	echo "==> Flashable zip created"
-	echo "==> Uploading Kernel Zip to Google Drive"
+	echo "==> Uploading Kernel Zip to Mega folder"
 	if [[ $4 == 'Beta'* ]]; then
-		gdrive upload --delete --parent $BETA_DIR $AK2DIR/$FINAL_ZIP
+		mega-put -q $FINAL RebelKernel/Beta
 	elif [[ $4 == 'Release'* ]]; then
-		gdrive upload --delete --parent $RELEASE_DIR $AK2DIR/$FINAL_ZIP
+		mega-put -q $FINAL RebelKernel/Release
 	else
-		gdrive upload --delete $AK2DIR/$FINAL_ZIP
+		mega-put -q $FINAL RebelKernel
 	fi
 	if [ $? -ne 0 ]; then
 		echo "!!! Upload failed. Unexpected error. !!!"
