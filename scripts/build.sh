@@ -7,7 +7,7 @@
 KNAME="RebelKernel"
 export KBUILD_BUILD_USER="RblLn"
 export KBUILD_BUILD_HOST="Lion's_Den"
-# Script output colors
+# Script output appearance
 red="\033[1;91m"
 green="\033[1;92m"
 green1="\033[1;4;92m"
@@ -18,9 +18,12 @@ blinkgreen="\033[1;5;92m"
 blinkcyan="\033[1;5;96m"
 die="\033[1;5;91m"
 reset="\033[0m"
+top="${cyan}	╔═════════════════════════════════════════════════════════════════════┅┄ ${reset}"
+mid="${cyan}	║ ${reset}"
+end="${cyan}	╚═════════════════════════════════════════════════════════════════════┅┄ ${reset}"
 # Core functions
 usage() {
-	printf "\n\t\t  ${blinkgreen}MISSING ARGUMENTS (AT LEAST 2)${reset}"
+	printf "\n${top}\n${mid}\t\t  ${blinkgreen}MISSING ARGUMENTS (AT LEAST 2)${reset}\n${end}"
 	printf "\n ${green1}Usage: \n\t${reset}$0 ${blue}<arm|arm64> <device> ${green}(optional) ${blue}<jobs> <type> <version #>"
 	printf "\n\n ${green1}Arguments:${reset}"
 	printf "\n\n\t${blue}'<device>' is the name of target defconfig"
@@ -35,10 +38,20 @@ status=${PIPESTATUS[0]}
 "$@"
 if [[ $status -ne 0 ]]; then
 	echo -e "${die}!!! $cmd failed, can't continue !!!${reset}"
+	cat fail.log|grep rror >> .errors
+	echo -e "$top"
+	echo -e "$mid"
+	cat .errors|sed -e 's/^/\	║	/'
+	echo -e "$mid"
+	echo -e "$end"
 	gdrive upload --delete fail.log
 	exit 1
 else
-	echo -e "${green}$cmd succeeded.${reset}"
+	echo -e "$top"
+	echo -e "$mid"
+	echo -e "$mid    ${green}$cmd succeeded.${reset}"
+	echo -e "$mid"
+	echo -e "$end"
 fi
 }
 # Check for needed variables
@@ -62,7 +75,9 @@ elif [[ $1 = arm64 ]]; then
 	export ARCH=arm64
 	export CROSS_COMPILE=$KDIR/../mytools/toolchains/linaro-4.9.4-aarch64-linux-gnu/bin/aarch64-linux-gnu-
 else
-	echo -e "${die}ERROR:${reset} ${red}ARCH is either arm or arm64${reset}"
+	echo -e "${top}"
+	echo -e "${mid}${die}ERROR:${reset} ${red}ARCH is either arm or arm64${reset}"
+	echo -e "${end}"
 	exit 1
 fi
 # Threads to run build
@@ -90,28 +105,28 @@ if [ -e $KDIR/out/arch/arm/boot/zImage ] || [ -e $KDIR/out/arch/arm64/boot/Image
 	mkdir $KDIR/out/modinstall/
 fi
 # Begin Build
-printf "\n${green}ARCHITECTURE: ${blue}$1\n${green}DEVICE: ${blue}$2\n${green}THREADS: ${blue}$t\n"
+printf "\n${top}\n${mid}${green}ARCHITECTURE: ${blue}$1\n${green}DEVICE: ${blue}$2\n${green}THREADS: ${blue}$t\n"
 if [ -z $4 ] && [ -z $5 ]; then
-	printf "${green}GCC VERSION: ${blue}$GCCV\n\n${reset}"
+	printf "${mid}${green}GCC VERSION: ${blue}$GCCV\n\n${reset}\n${end}"
 else
-	printf "${green}TYPE: ${blue}$4\n${green}VERSION: ${blue}$5\n${green}GCC VERSION: ${blue}$GCCV\n\n${reset}"
+	printf "${mid}${green}TYPE: ${blue}$4\n${green}VERSION: ${blue}$5\n${green}GCC VERSION: ${blue}$GCCV\n\n${reset}\n${end}"
 fi
 echo -e "${green}Build script by ${blinkgreen}FacuM${reset} ${green}and ${blinkgreen}RebelLion420${reset}"
 sleep 1
 echo -e "${green}==> Making kernel image...${reset}"
 make O=out "$DEVICE"_defconfig
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
-	echo -e "${red}TARGET DEVICE INVALID. Choose a valid defconfig.${reset}"
+	echo -e "${top}\n${mid}${red}TARGET DEVICE INVALID. Choose a valid defconfig.${reset}"
 	if [ $1 = arm ]; then
-		printf "\n${green1}Listing available configs:\n${reset}${cyan}"
+		printf "${mid}\n${mid}${green1}Listing available configs:\n${reset}${cyan}"
 		ls arch/arm/configs${reset}
 	elif [ $1 = arm64 ]; then
-		printf "\n${green1}Listing available configs:\n${reset}${cyan}"
+		printf "${mid}\n${mid}${green1}Listing available configs:\n${reset}${cyan}"
 		ls arch/arm64/configs${reset}
 	fi
 	exit 1
 else
-	echo -e "${green}make ${DEVICE}_defconfig succeeded.${reset}"
+	echo -e "${top}\n${mid}${green}make ${DEVICE}_defconfig succeeded.${reset}\n${end}"
 fi
 run_build make O=out -j$t $IMG |& tee fail.log
 ### echo -e "${green}=> Making DTBs...${reset}"
@@ -130,7 +145,11 @@ if [ -e $AK2DIR/*Image* ]; then
 	rm -f $AK2DIR/modules/system/lib/modules/*.ko
 fi
 # Build Finished
-echo -e "${blinkcyan}==> Kernel compilation completed${reset}"
+echo -e "$top"
+echo -e "$mid"
+echo -e "${mid}${blinkcyan}==> Kernel compilation completed${reset}"
+echo -e "$mid"
+echo -e "$end"
 # Determines zip name format
 if [ -z $4 ] || [ -z $KNAME ]; then
 	FINAL="$DEVICE"_kernel-"$DATE".zip
@@ -149,7 +168,7 @@ cd $AK2DIR
 zip -r9 $FINAL * -x .git README.md *placeholder > /dev/null
 # Upload to MEGA
 if [ -e $FINAL ]; then
-	echo -e "${cyan}==> Flashable zip created${reset}"
+	echo -e "${top}\n${mid}${cyan}==> Flashable zip created${reset}\n${end}"
 	echo -e "${green}==> Uploading Kernel Zip to Mega folder${reset}"
 	if [[ $4 = Beta* ]]; then
 		echo -e "${cyan}=> $FINAL --> $KERNBETA${reset}"
@@ -162,13 +181,21 @@ if [ -e $FINAL ]; then
 		mega-put -q $FINAL $KERN
 	fi
 	if [ $? != 0 ]; then
-		echo -e "${die}!!! Upload failed. Unexpected error. !!!${reset}"
+		echo -e "$top"
+		echo -e "$mid"
+		echo -e "${mid}${die}!!! Upload failed. Unexpected error. !!!${reset}"
+		echo -e "$mid"
+		echo -e "$end"
 	else
-		echo -e "${green}=> Upload complete!${reset}"
+		echo -e "${top}\n${mid}${green}=> Upload complete!${reset}\n${end}"
 	fi
 	exit 0
 else
-	echo "${die}!!! Unexpected error. Abort !!!${reset}"
+	echo -e "$top"
+	echo -e "$mid"
+	echo -e "${mid}${die}!!! Unexpected error. Abort !!!${reset}"
+	echo -e "$mid"
+	echo -e "$end"
 	exit 1
 fi
  
